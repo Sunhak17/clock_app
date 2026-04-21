@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/timezone_model.dart';
+import '../services/timezone_converter.dart';
 import '../data/timezones.dart';
 
 class ClockScreen extends StatefulWidget {
@@ -15,13 +16,17 @@ class ClockScreen extends StatefulWidget {
 class _ClockScreenState extends State<ClockScreen> {
   Timer? _timer;
   DateTime _currentTime = DateTime.now();
-  bool _autoTimezone = true;
   late String _selectedTimezone;
 
   @override
   void initState() {
     super.initState();
-    _selectedTimezone = worldTimezones[0].id;
+    _selectedTimezone = worldTimezones
+        .firstWhere(
+          (tz) => tz.id == 'Asia/Phnom_Penh',
+          orElse: () => worldTimezones[0],
+        )
+        .id;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _currentTime = DateTime.now();
@@ -33,6 +38,19 @@ class _ClockScreenState extends State<ClockScreen> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  /// Get the selected timezone object
+  TimezoneData _getSelectedTimezone() {
+    return worldTimezones.firstWhere(
+      (tz) => tz.id == _selectedTimezone,
+      orElse: () => worldTimezones[0],
+    );
+  }
+
+  /// Get the time in the selected timezone
+  DateTime _getTimezoneTime() {
+    return TimezoneConverter.convertToTimezone(_currentTime, _getSelectedTimezone());
   }
 
   @override
@@ -64,7 +82,7 @@ class _ClockScreenState extends State<ClockScreen> {
               children: [
                 // Digital time
                 Text(
-                  DateFormat('HH:mm').format(_currentTime),
+                  DateFormat('HH:mm').format(_getTimezoneTime()),
                   style: const TextStyle(
                     fontSize: 72,
                     fontWeight: FontWeight.w300,
@@ -75,16 +93,26 @@ class _ClockScreenState extends State<ClockScreen> {
                 const SizedBox(height: 8),
                 // Date
                 Text(
-                  DateFormat('EEE, d MMM').format(_currentTime),
+                  DateFormat('EEE, d MMM').format(_getTimezoneTime()),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[400],
                     fontWeight: FontWeight.w400,
                   ),
                 ),
+                const SizedBox(height: 4),
+                // Timezone display
+                Text(
+                  _getSelectedTimezone().getDisplayName(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
                 const SizedBox(height: 48),
                 // Analog Clock
-                const AnalogClock(),
+                AnalogClock(time: _getTimezoneTime()),
                 const SizedBox(height: 48),
                 // Timezone Section
                 Container(
@@ -127,7 +155,7 @@ class _ClockScreenState extends State<ClockScreen> {
                             items: worldTimezones.map((tz) {
                               return DropdownMenuItem<String>(
                                 value: tz.id,
-                                child: Text('${tz.flag} ${tz.country} - ${tz.offset}'),
+                                child: Text(tz.getDisplayName()),
                               );
                             }).toList(),
                             onChanged: (String? value) {
@@ -139,27 +167,6 @@ class _ClockScreenState extends State<ClockScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Automatic timezone',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Switch(
-                            value: _autoTimezone,
-                            onChanged: (value) {
-                              setState(() {
-                                _autoTimezone = value;
-                              });
-                            },
-                            activeColor: Colors.green,
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -173,32 +180,15 @@ class _ClockScreenState extends State<ClockScreen> {
 }
 
 class AnalogClock extends StatefulWidget {
-  const AnalogClock({super.key});
+  final DateTime time;
+
+  const AnalogClock({super.key, required this.time});
 
   @override
   State<AnalogClock> createState() => _AnalogClockState();
 }
 
 class _AnalogClockState extends State<AnalogClock> {
-  Timer? _timer;
-  DateTime _currentTime = DateTime.now();
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _currentTime = DateTime.now();
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -216,7 +206,7 @@ class _AnalogClockState extends State<AnalogClock> {
         ],
       ),
       child: CustomPaint(
-        painter: ClockPainter(_currentTime),
+        painter: ClockPainter(widget.time),
       ),
     );
   }
