@@ -108,17 +108,19 @@ class _TimerScreenState extends State<TimerScreen> {
           ),
         ),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 20),
               if (_totalSeconds == 0) ...[
                 // Time picker
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                     _buildTimePicker('Hours', _hours, (value) {
                       setState(() {
                         _hours = value;
@@ -138,7 +140,11 @@ class _TimerScreenState extends State<TimerScreen> {
                     }),
                   ],
                 ),
+                ),
               ] else ...[
+                Center(
+                  child: Column(
+                    children: [
                 // Timer display
                 Text(
                   _formatTime(_remainingSeconds),
@@ -174,12 +180,16 @@ class _TimerScreenState extends State<TimerScreen> {
                     ],
                   ),
                 ),
+                    ],
+                  ),
+                ),
               ],
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
               // Control buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                   if (_totalSeconds == 0) ...[
                     ElevatedButton(
                       onPressed: _startTimer,
@@ -246,6 +256,8 @@ class _TimerScreenState extends State<TimerScreen> {
                   ],
                 ],
               ),
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -265,40 +277,48 @@ class _TimerScreenState extends State<TimerScreen> {
         ),
         const SizedBox(height: 8),
         Container(
-          width: 80,
-          height: 100,
+          width: 70,
+          height: 80,
           decoration: BoxDecoration(
             color: const Color(0xFF3A3F52),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              IconButton(
-                icon: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
-                onPressed: () {
-                  if (label == 'Hours' && value < 23) {
-                    onChanged(value + 1);
-                  } else if (label != 'Hours' && value < 59) {
-                    onChanged(value + 1);
-                  }
-                },
+              SizedBox(
+                height: 24,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.keyboard_arrow_up, color: Colors.white, size: 18),
+                  onPressed: () {
+                    if (label == 'Hours' && value < 23) {
+                      onChanged(value + 1);
+                    } else if (label != 'Hours' && value < 59) {
+                      onChanged(value + 1);
+                    }
+                  },
+                ),
               ),
               Text(
                 value.toString().padLeft(2, '0'),
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                onPressed: () {
-                  if (value > 0) {
-                    onChanged(value - 1);
-                  }
-                },
+              SizedBox(
+                height: 24,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                  onPressed: () {
+                    if (value > 0) {
+                      onChanged(value - 1);
+                    }
+                  },
+                ),
               ),
             ],
           ),

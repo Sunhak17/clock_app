@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../data/timezones.dart';
 
 class ClockScreen extends StatefulWidget {
   const ClockScreen({super.key});
@@ -14,10 +15,12 @@ class _ClockScreenState extends State<ClockScreen> {
   Timer? _timer;
   DateTime _currentTime = DateTime.now();
   bool _autoTimezone = true;
+  late String _selectedTimezone;
 
   @override
   void initState() {
     super.initState();
+    _selectedTimezone = worldTimezones[0].id;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _currentTime = DateTime.now();
@@ -93,7 +96,7 @@ class _ClockScreenState extends State<ClockScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Timezone',
+                        'Select Timezone',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -101,34 +104,38 @@ class _ClockScreenState extends State<ClockScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          // Flag emoji (using a colored container as placeholder)
-                          Container(
-                            width: 32,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFFFF9933),
-                                  Color(0xFFFFFFFF),
-                                  Color(0xFF138808),
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2D3142),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.grey[700]!,
+                            width: 1,
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'UTC+05:30 (IST)',
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedTimezone,
+                            isExpanded: true,
+                            dropdownColor: const Color(0xFF3A3F52),
                             style: TextStyle(
                               color: Colors.grey[300],
                               fontSize: 15,
                             ),
+                            items: worldTimezones.map((tz) {
+                              return DropdownMenuItem<String>(
+                                value: tz.id,
+                                child: Text('${tz.flag} ${tz.country} - ${tz.offset}'),
+                              );
+                            }).toList(),
+                            onChanged: (String? value) {
+                              setState(() {
+                                _selectedTimezone = value ?? worldTimezones[0].id;
+                              });
+                            },
                           ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Row(
